@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.jonathan.jonoparstagram.MainActivity
 import com.jonathan.jonoparstagram.Post
 import com.jonathan.jonoparstagram.PostAdapter
@@ -21,6 +22,8 @@ open class FeedFragment : Fragment() {
     lateinit var postsRecyclerView: RecyclerView
 
     lateinit var adapter: PostAdapter
+
+    lateinit var swipeContainer: SwipeRefreshLayout
 
     var allPosts: MutableList<Post> = mutableListOf()
 
@@ -37,6 +40,19 @@ open class FeedFragment : Fragment() {
         //We will set up views here
 
         postsRecyclerView = view.findViewById(R.id.postRecyclerView)
+        swipeContainer = view.findViewById(R.id.swipeContainer)
+        swipeContainer.setOnRefreshListener {
+            // Your code to refresh the list here.
+            // Make sure you call swipeContainer.setRefreshing(false)
+            // once the network request has completed successfully.
+            queryPosts()
+        }
+
+        // Configure the refreshing colors
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+            android.R.color.holo_green_light,
+            android.R.color.holo_orange_light,
+            android.R.color.holo_red_light);
 
         adapter = PostAdapter(requireContext(), allPosts)
         postsRecyclerView.adapter = adapter
@@ -44,6 +60,7 @@ open class FeedFragment : Fragment() {
         postsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         queryPosts()
+
     }
 
     //Query for all posts in our server
@@ -56,7 +73,6 @@ open class FeedFragment : Fragment() {
         query.addDescendingOrder("createdAt")
 
         //Only return most recent 20 posts
-
         query.findInBackground(object : FindCallback<Post> {
             override fun done(posts: MutableList<Post>?, e: ParseException?) {
                 if(e !=null){
@@ -68,9 +84,10 @@ open class FeedFragment : Fragment() {
                                     post.getUser()?.username
                             )
                         }
-
+                        adapter.clear()
                         allPosts.addAll(posts)
                         adapter.notifyDataSetChanged()
+                        swipeContainer.setRefreshing(false)
                     }
                 }
             }

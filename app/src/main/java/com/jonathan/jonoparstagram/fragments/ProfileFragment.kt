@@ -30,9 +30,10 @@ class ProfileFragment : FeedFragment() {
                                     post.getUser()?.username
                             )
                         }
-
+                        adapter.clear()
                         allPosts.addAll(posts)
                         adapter.notifyDataSetChanged()
+                        swipeContainer.setRefreshing(false)
                     }
                 }
             }
